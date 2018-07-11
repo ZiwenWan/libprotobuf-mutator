@@ -1,9 +1,12 @@
 # libprotobuf-mutator for Apollo
 
 ## Overview
-The repository is forked from [google/libprotobuf-mutator](https://github.com/google/libprotobuf-mutator) 
+The repository is forked from [google/libprotobuf-mutator](https://github.com/google/libprotobuf-mutator)
+
 libprotobuf-mutator is a library to randomly mutate [protobuffers](https://github.com/google/protobuf) messages. 
+
 It could be used together with guided fuzzing engine: [libFuzzer](http://libfuzzer.info). 
+
 Customized for fuzzing test against Baidu [Apollo](https://github.com/ApolloAuto/apollo) self-driving functionalities
 ## Prerequisite
 

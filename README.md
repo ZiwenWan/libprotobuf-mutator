@@ -1,4 +1,4 @@
-# libprotobuf-mutator
+# libprotobuf-mutator for Apollo
 
 ## Overview
 The repository is forked from [google/libprotobuf-mutator](https://github.com/google/libprotobuf-mutator) 
@@ -17,35 +17,55 @@ sudo apt-get install clang-6.0 lldb-6.0 lld-6.0
 ```
 
 After merging the pull request, you should have the following **requirements** ready
-* `/apollo/tools/fuzz-compiler
+* `CROSSTOOL` file for clang-6.0 at `/apollo/tools/clang-6.0/`
 * Several fuzz driver derived from unit test under `/apollo/modules/controller/` and `/apollo/modules/integration_test/` with the name contains `_fuzz`
 * Updated `WORKSPACE.in` by adding a new git repository for a modified version of libprotbuf-mutator
-* BUILD file for the third-party library located in `/apollo/third_party/libprotobuf-mutator.BUILD`
-```
-mkdir build
-cd build
-cmake .. -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug
-ninja check
-```
-Clang is only needed for libFuzzer integration. <BR>
-By default, the system-installed version of
-[protobuf](https://github.com/google/protobuf) is used.  However, on some
-systems, the system version is too old.  You can pass
-`LIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON` to cmake to automatically download and
-build a working version of protobuf.
+* `BUILD` file for the third-party library located in `/apollo/third_party/libprotobuf-mutator.BUILD`
 
+Before moving on to build the target module with fuzzing support, we need to fix one minor issue with `libfortran` in the Apollo docker
+```
+sudo ln -s /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/libgfortran.so
+```
 ## Usage
+To compile the fuzzing unit test, using bazel build with the provided CROSSTOOL. We will use one of the controller fuzzing unit test as an example
+```
+bazel build --crosstool_top=tools/clang-6.0:toolchain modules/control/controller:lat_controller_fuzzer --compilation_mode=dbg
+```
+The target fuzzing unit test binary will be built in `bazel-bin` folder. 
+If you take a look at the corresponding `BUILD` file:
+```
+cc_binary(
+    name = "lat_controller_fuzzer",
+    srcs = ["lat_controller_fuzzer.cc"],
+    data = ["//modules/control:control_testdata"],
+    deps = [
+        ":lat_controller",
+        "//modules/common:log",
+        "//modules/common/time",
+        "//modules/common/util",
+        "//modules/common/vehicle_state:vehicle_state_provider",
+        "//modules/control/proto:control_proto",
+        "//modules/planning/proto:planning_proto",
+        "@libprotobuf_mutator//:mutator",
+    ],
+    copts = ["-fsanitize=fuzzer,address",
+    "-Iexternal/libprotobuf_mutator/src/libfuzzer/",],
+    linkopts = ["-fsanitize=fuzzer,address"]
+)
+```
+The binary is compiled with the option `-fsanitize=fuzzer,address`, the `fuzzer` option tells compiler to use `libFuzzer` driver to build, while the `address` adds AddressSanitizer. You can optionally add `UndefinedBehaviorSanitizer`,`LeakSanitizer`, `ThreadSanitizer`, and so on. 
 
-To use libprotobuf-mutator simply include
-[mutator.h](/src/mutator.h) and
-[mutator.cc](/src/mutator.cc) into your build files.
+Now, if we run the binary, the fuzzing test will start, and some runtime statistics will appear on the screen. If a crash is encountered, the fuzzing will stop, and the testcase will be saved. For more advanced commandline options, such as using seeds and dictionaries, please refer to the [libFuzzer](http://libfuzzer.info) page. 
 
-The `ProtobufMutator` class implements mutations of the protobuf
-tree structure and mutations of individual fields.
-The field mutation logic is very basic --
-for better results you should override the `ProtobufMutator::Mutate*`
-methods with more sophisticated logic, e.g.
-using [libFuzzer](http://libfuzzer.info)'s mutators.
+The `ProtobufMutator` class implements mutations of the protobuf tree structure and mutations of individual fields. The field mutation logic is preliminary -- it can be further improved by overriding the `ProtobufMutator::Mutate*` methods with more sophisticated or domain specific logic, e.g. using [libFuzzer](http://libfuzzer.info)'s mutators.
+
+`gdb` is prefered to be used for root cause diagnosis, and some simple instructions are provided
+```
+gdb bazel-bin/control/controller/lon_controller_fuzzer
+set args ./crash-0x1234567
+run 
+bt  # output backtrace of crash
+```
 
 To apply one mutation to a protobuf object do the following:
 
@@ -61,11 +81,8 @@ void Mutate(MyMessage* message) {
 }
 ```
 
-See also the `ProtobufMutatorMessagesTest.UsageExample` test from
-[mutator_test.cc](/src/mutator_test.cc).
-
-## Integrating with libFuzzer
-LibFuzzerProtobufMutator can help to integrate with libFuzzer. For example 
+See also the `modules/control/controller/lat_controller_fuzzer.cc` and `modules/control/controller/simple_control_fuzz.cc` in the pull request for more examples.
+Here is a prototype of the fuzzer driver to be written for developers. 
 
 ```
 #include "src/libfuzzer/libfuzzer_macro.h"
@@ -75,11 +92,9 @@ DEFINE_PROTO_FUZZER(const MyMessageType& input) {
   ConsumeMyMessageType(input);
 }
 ```
+## Contact
+Yunhan Jia [@jiayunhan](https://github.com/jiayunhan)
+For Baidu developers, if you have any questions, you can reach out to me on **Baidu-Hi**.
 
-Please see [libfuzzer_example.cc](/examples/libfuzzer/libfuzzer_example.cc) as an example.
-
-## UTF-8 strings
-"proto2" and "proto3" handle invalid UTF-8 strings differently. In both cases
-string should be UTF-8, however only "proto3" enforces that. So if fuzzer is
-applied to "proto2" type libprotobuf-mutator will generate any strings including
-invalid UTF-8. If it's a "proto3" message type, only valid UTF-8 will be used.
+## Acknowledgement
+The libprotobuf-mutator for Apollo is forked from the Google open source [project](https://github.com/google/libprotobuf-mutator), and is provided under Apache Version 2.0 license. 

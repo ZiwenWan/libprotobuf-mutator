@@ -53,7 +53,7 @@ cc_binary(
     linkopts = ["-fsanitize=fuzzer,address"]
 )
 ```
-The binary is compiled with the option `-fsanitize=fuzzer,address`, the `fuzzer` option tells compiler to use `libFuzzer` driver to build, while the `address` adds AddressSanitizer. You can optionally add `UndefinedBehaviorSanitizer`,`LeakSanitizer`, `ThreadSanitizer`, and so on. 
+The binary is compiled with the option `-fsanitize=fuzzer,address`, the `fuzzer` option tells compiler to use `libFuzzer` driver to build, while the `address` adds AddressSanitizer. You can optionally add `UndefinedBehaviorSanitizer`, `LeakSanitizer`, `ThreadSanitizer`, and so on. 
 
 Now, if we run the binary, the fuzzing test will start, and some runtime statistics will appear on the screen. If a crash is encountered, the fuzzing will stop, and the testcase will be saved. For more advanced commandline options, such as using seeds and dictionaries, please refer to the [libFuzzer](http://libfuzzer.info) page. 
 

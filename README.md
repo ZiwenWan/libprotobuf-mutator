@@ -60,7 +60,7 @@ The binary is compiled with the option `-fsanitize=fuzzer,address`, the `fuzzer`
 
 Now, if we run the binary, the fuzzing test will start, and some runtime statistics will appear on the screen. If a crash is encountered, the fuzzing will stop, and the testcase will be saved. For more advanced commandline options, such as using seeds and dictionaries, please refer to the [libFuzzer](http://libfuzzer.info) page. 
 
-The `ProtobufMutator` class implements mutations of the protobuf tree structure and mutations of individual fields. The field mutation logic is preliminary -- it can be further improved by overriding the `ProtobufMutator::Mutate*` methods with more sophisticated or domain specific logic, e.g. using [libFuzzer](http://libfuzzer.info)'s mutators.
+The `ProtobufMutator` class implements mutations of the protobuf **tree structure** and mutations of **individual fields**. The field mutation logic is preliminary -- it can be further improved by adding more domain specific knowledge (e.g., generating valid sequence number for repeated fields), and we are working on it. 
 
 `gdb` is prefered to be used for root cause diagnosis, and some simple instructions are provided
 ```

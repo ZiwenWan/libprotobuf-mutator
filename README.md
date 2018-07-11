@@ -82,6 +82,7 @@ void Mutate(MyMessage* message) {
 ```
 
 See also the `modules/control/controller/lat_controller_fuzzer.cc` and `modules/control/controller/simple_control_fuzz.cc` in the pull request for more examples.
+
 Here is a prototype of the fuzzer driver to be written for developers. 
 
 ```
@@ -94,6 +95,7 @@ DEFINE_PROTO_FUZZER(const MyMessageType& input) {
 ```
 ## Contact
 Yunhan Jia [@jiayunhan](https://github.com/jiayunhan)
+
 For Baidu developers, if you have any questions, you can reach out to me on **Baidu-Hi**.
 
 ## Acknowledgement

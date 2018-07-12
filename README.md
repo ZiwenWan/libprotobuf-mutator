@@ -70,20 +70,6 @@ run
 bt  # output backtrace of crash
 ```
 
-To apply one mutation to a protobuf object do the following:
-
-```
-class MyProtobufMutator : public protobuf_mutator::Mutator {
- public:
-  MyProtobufMutator(uint32_t seed) : protobuf_mutator::Mutator(seed) {}
-  // Optionally redefine the Mutate* methods to perform more sophisticated mutations.
-}
-void Mutate(MyMessage* message) {
-  MyProtobufMutator mutator(my_random_seed);
-  mutator.Mutate(message, 200);
-}
-```
-
 See also the `modules/control/controller/lat_controller_fuzzer.cc` and `modules/control/controller/simple_control_fuzz.cc` in the pull request for more examples.
 
 Here is a prototype of the fuzzer driver to be written for developers. 
@@ -102,4 +88,4 @@ Yunhan Jia [@jiayunhan](https://github.com/jiayunhan)
 For Baidu developers, if you have any questions, you can reach out to me on **Baidu-Hi**.
 
 ## Acknowledgement
-The libprotobuf-mutator for Apollo is forked from the Google open source [project](https://github.com/google/libprotobuf-mutator), and is provided under Apache Version 2.0 license. 
+**libprotobuf-mutator for Apollo** is forked from the Google open source [project](https://github.com/google/libprotobuf-mutator), and is provided under Apache Version 2.0 license. 

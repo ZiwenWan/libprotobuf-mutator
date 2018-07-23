@@ -52,11 +52,15 @@ cc_binary(
         "@libprotobuf_mutator//:mutator",
     ],
     copts = ["-fsanitize=fuzzer,address",
-    "-Iexternal/libprotobuf_mutator/src/libfuzzer/",],
+    "-Iexternal/libprotobuf_mutator/src/",],
     linkopts = ["-fsanitize=fuzzer,address"]
 )
 ```
-The binary is compiled with the option `-fsanitize=fuzzer,address`, the `fuzzer` option tells compiler to use `libFuzzer` driver to build, while the `address` adds AddressSanitizer. You can optionally add `UndefinedBehaviorSanitizer`, `LeakSanitizer`, `ThreadSanitizer`, and so on. 
+The binary is compiled with the option `-fsanitize=fuzzer,address`, the `fuzzer` option tells compiler to use `libFuzzer` driver to build, while the `address` adds AddressSanitizer. You can optionally add 
+* `UndefinedBehaviorSanitizer`
+* `LeakSanitizer`
+* `ThreadSanitizer`
+* etc. 
 
 Now, if we run the binary, the fuzzing test will start, and some runtime statistics will appear on the screen. If a crash is encountered, the fuzzing will stop, and the testcase will be saved. For more advanced commandline options, such as using seeds and dictionaries, please refer to the [libFuzzer](http://libfuzzer.info) page. 
 
@@ -82,6 +86,15 @@ DEFINE_PROTO_FUZZER(const MyMessageType& input) {
   ConsumeMyMessageType(input);
 }
 ```
+## Write Your Own Fuzz Test
+The easist way to get start is to write the Fuzz testcase based on the existing unit tests. Following these steps to get start:
+* Copy the `*_test.cc` into `*_fuzz.cc` under submodule folders
+* Include `libfuzzer/libfuzzer_macro.h`
+* Use each gtest `TEST_F` as target function by changing its interface (refering to examples)
+* Implement `DEFINE_PROTO_FUZZER` accordingly to call the target functions
+* Add the target into BUILD files with required dependency, compilation options, and link options added 
+* Build & run
+
 ## Contact
 Yunhan Jia [@jiayunhan](https://github.com/jiayunhan)
 
